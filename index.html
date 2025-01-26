@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Ahorcado - Possessive Adjectives</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .word {
+            font-size: 24px;
+            letter-spacing: 5px;
+        }
+        .letters {
+            margin-top: 20px;
+        }
+        .letter {
+            margin: 5px;
+            font-size: 18px;
+            padding: 10px 15px;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        .letter:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        .message {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        .clue {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>El Ahorcado - Possessive Adjectives</h1>
+    <p>Guess the word based on the clue:</p>
+
+    <div id="hangman">
+        <div class="clue" id="clue">Clue: _______</div>
+        <div class="word" id="wordDisplay">_ _ _ _ _</div>
+        <div id="hangmanFigure">Attempts left: <span id="attempts">6</span></div>
+        <div class="letters" id="letters"></div>
+        <div class="message" id="message"></div>
+        <button id="nextWordButton" style="display:none; margin-top: 20px;">Next Word</button>
+    </div>
+
+    <script>
+        const wordsWithClues = [
+            { word: "primo", clue: "El hijo de mi tío es mi..." },
+            { word: "madre", clue: "La esposa de mi padre es mi..." },
+            { word: "abuelo", clue: "El padre de mi padre es mi..." },
+            { word: "hermana", clue: "La hija de mis padres es mi..." },
+            { word: "tía", clue: "La hermana de mi madre es mi..." },
+            { word: "sobrino", clue: "El hijo de mi hermano es mi..." }
+        ];
+
+        const maxAttempts = 6;
+        let remainingWords = [...wordsWithClues];
+        let currentWordData = {};
+        let attempts = maxAttempts;
+        let guessed = new Set();
+        let wordDisplay = [];
+
+        const clueEl = document.getElementById("clue");
+        const wordDisplayEl = document.getElementById("wordDisplay");
+        const attemptsEl = document.getElementById("attempts");
+        const lettersEl = document.getElementById("letters");
+        const messageEl = document.getElementById("message");
+        const nextWordButton = document.getElementById("nextWordButton");
+
+        const initializeGame = () => {
+            if (remainingWords.length === 0) {
+                messageEl.textContent = "¡Juego completado! Has adivinado todas las palabras.";
+                wordDisplayEl.textContent = "";
+                lettersEl.innerHTML = "";
+                clueEl.textContent = "";
+                nextWordButton.style.display = "none";
+                return;
+            }
+
+            currentWordData = remainingWords.splice(Math.floor(Math.random() * remainingWords.length), 1)[0];
+            attempts = maxAttempts;
+            guessed.clear();
+            wordDisplay = Array(currentWordData.word.length).fill("_");
+            updateDisplay();
+            renderLetters();
+            messageEl.textContent = "";
+            clueEl.textContent = `Clue: ${currentWordData.clue}`;
+            nextWordButton.style.display = "none";
+        };
+
+        const updateDisplay = () => {
+            wordDisplayEl.textContent = wordDisplay.join(" ");
+            attemptsEl.textContent = attempts;
+        };
+
+        const checkWin = () => {
+            if (!wordDisplay.includes("_")) {
+                messageEl.textContent = "¡Ganaste!";
+                lettersEl.innerHTML = "";
+                nextWordButton.style.display = "inline-block";
+            }
+        };
+
+        const checkLoss = () => {
+            if (attempts <= 0) {
+                messageEl.textContent = `Perdiste. La palabra era: ${currentWordData.word}`;
+                lettersEl.innerHTML = "";
+                nextWordButton.style.display = "inline-block";
+            }
+        };
+
+        const handleGuess = (letter) => {
+            if (currentWordData.word.includes(letter)) {
+                currentWordData.word.split("").forEach((char, index) => {
+                    if (char === letter) {
+                        wordDisplay[index] = letter;
+                    }
+                });
+                checkWin();
+            } else {
+                attempts--;
+                checkLoss();
+            }
+            guessed.add(letter);
+            updateDisplay();
+            renderLetters();
+        };
+
+        const renderLetters = () => {
+            lettersEl.innerHTML = "";
+            "abcdefghijklmnopqrstuvwxyz".split("").forEach((letter) => {
+                const button = document.createElement("button");
+                button.textContent = letter;
+                button.classList.add("letter");
+                button.disabled = guessed.has(letter);
+                button.addEventListener("click", () => handleGuess(letter));
+                lettersEl.appendChild(button);
+            });
+        };
+
+        nextWordButton.addEventListener("click", initializeGame);
+
+        initializeGame();
+    </script>
+</body>
+</html>
